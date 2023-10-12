@@ -4,21 +4,22 @@ Generic bash script for a daemon.
 
 # Table of contents
 
-- [exampled](#exampled)
-- [Table of contents](#table-of-contents)
-- [Introduction](#introduction)
-- [Usage:](#usage)
-  - [exampled.sh](#exampledsh)
-  - [exampled_start.sh](#exampled_startsh)
-  - [exampled_check.sh](#exampled_checksh)
-  - [exampled_sample.sh](#exampled_samplesh)
-  - [exampled_stop.sh](#exampled_stopsh)
-  - [exampled_tst.sh](#exampled_tstsh)
-- [Design](#design)
-- [Porting](#porting)
-- [License](#license)
-
-<sup>(table of contents from https://luciopaiva.com/markdown-toc/)</sup>
+<!-- mdtoc-start -->
+&bull; [exampled](#exampled)  
+&bull; [Table of contents](#table-of-contents)  
+&bull; [Introduction](#introduction)  
+&bull; [Usage:](#usage)  
+&nbsp;&nbsp;&nbsp;&nbsp;&bull; [exampled.sh](#exampledsh)  
+&nbsp;&nbsp;&nbsp;&nbsp;&bull; [exampled_start.sh](#exampled_startsh)  
+&nbsp;&nbsp;&nbsp;&nbsp;&bull; [exampled_check.sh](#exampled_checksh)  
+&nbsp;&nbsp;&nbsp;&nbsp;&bull; [exampled_sample.sh](#exampled_samplesh)  
+&nbsp;&nbsp;&nbsp;&nbsp;&bull; [exampled_stop.sh](#exampled_stopsh)  
+&nbsp;&nbsp;&nbsp;&nbsp;&bull; [exampled_tst.sh](#exampled_tstsh)  
+&bull; [Design](#design)  
+&bull; [Porting](#porting)  
+&bull; [License](#license)  
+<!-- TOC created by '../mdtoc/mdtoc.pl README.md' (see https://github.com/fordsfords/mdtoc) -->
+<!-- mdtoc-end -->
 
 # Introduction
 
@@ -26,13 +27,38 @@ Over the years, I've had many occasions where I wanted to create a
 daemon process that has a long runtime, usually with the intention
 that the process runs all the time the system is running.
 
+This repo is a skeletal version that pulls together the features
+I've found most useful.
+
+Many daemons that I find myself running are intended to collect information
+periodically over a long time.
+in many cases, I want the daemon running perpetually.
+But I obiously don't want the collected information filling the disk.
+
+This skeletal daemon design is written on the assumption that
+the daemon will write to a given log file for a full day,
+then switch to a fresh log file at midnight.
+It keeps 6 days of history in addition to the current day's log.
+The files are named according to the day of the week.
+E.g. "/tmp/exampled.log.Mon", "/tmp/exampled.log.Tue", etc.
+
+This daemon is designed to wake up periodically and
+collect a "sample" of data.
+This data is often just the output of a standard Unix command,
+like "netstat" or "ethtool" (or both).
+
+Almost all of the scripting in this repo is concerned with
+managing the daemon - starting it, stopping it, etc.
+
 # Usage:
 
-This repo contains example files for how to manage a daemon.
-The intention is to customize these files for the daemon
-that you want to manage.
-
 ## exampled.sh
+
+This is the actual daemon script.
+I.e. this is the script that is intended to run in the background
+and periodically wakes up, takes a sample, and goes back to sleep.
+As such, this is the script that actually knows how to take a data sample,
+and is therefore the one that you will customize for your own needs.
 
 Normally you would not execute this script directly.
 Use "exampled_start.sh", "exampled_stop.sh", etc.
@@ -48,10 +74,8 @@ See https://github.com/fordsfords/exampled for more information.
 
 ## exampled_start.sh
 
-To assist in running the tool continuously,
-there is a "exampled_start.sh" script that starts the exampled.sh
-script as a daemon (e.g. you can log out and the daemon will continue
-running).
+The "exampled_start.sh" script starts "exampled.sh" running as a daemon
+(e.g. you can log out and the daemon will continue running).
 
 The "exampled_start.sh" tool also records the desired command-line parameters
 of "exampled.sh" so that it can be restarted easily with the same settings.
@@ -143,14 +167,14 @@ E.g. a rolling log file might be "/tmp/exampled.log.Mon".
 
 # Porting
 
-Included is a script "port.sh".
-I'm not sure it should be used;
-maybe it's more of a reference.
+The "port.sh" script makes a copy of the "exampled" repo and
+changing the names of the files and their contents to reflect
+the new name.
 
-But if you're feeling brave and want to give it a go,
-decide on a name for your daemon (in this example, I use "pingerd"),
-go to the parent directory of the exampled repo, and enter
+Decide on a name for your daemon (in this example, I use "pingerd").
+Then go to the parent directory of the exampled repo, and enter
 "exampled/port.sh pingerd".
+
 For example:
 ````
 $ exampled/port.sh pingerd
@@ -170,12 +194,6 @@ Now edit pingerd/pingerd.sh and search for "TBD".
 Modify per your requirements.
 Test with "pingerd/pingerd_tst.sh".
 ````
-
-This will create a directory named "pinger" and modify the
-exampled files for it.
-
-Search for "TBD" in "pingerd.sh" and modify as per what you want
-to collect.
 
 # License
 
